@@ -12,7 +12,7 @@ DEFAULT_TRAIN_DATASET = dict(
     rec=dict(
         type='RECDataset',
         filename=r'/home/rshodeinde/NExT-Chat/shikra_ann/REC_ref3_train.jsonl',
-        image_folder=r'/home/rshodeinde/NExT-Chat/train2014',
+        image_folder=r'/home/rshodeinde/train2014',
         template_file=r'{{fileDirname}}/template/REC.json',
     ),)
     # caption=dict(

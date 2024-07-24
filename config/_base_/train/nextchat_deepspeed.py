@@ -10,7 +10,7 @@ training_args = dict(
 
     # train
     do_train=True,
-    per_device_train_batch_size=8,
+    per_device_train_batch_size=2,
     gradient_accumulation_steps=1,
     num_train_epochs=5,
     learning_rate=2e-5,
@@ -20,8 +20,9 @@ training_args = dict(
     evaluation_strategy='no',
 
     # train ddp
-    tf32=True,
-    bf16=False,
+    tf32=False,
+    bf16=True,
+    fp16 = False,
     gradient_checkpointing=True,
     deepspeed="config/_base_/train/zero2.json",
 
@@ -35,6 +36,6 @@ training_args = dict(
     do_eval=False,
     do_predict=False,
     predict_with_generate=True,
-    per_device_eval_batch_size=8,
+    per_device_eval_batch_size=1,
     dataloader_num_workers=4,
 )

@@ -5,8 +5,8 @@ model_args = dict(
     # checkpoint config
     cache_dir=None,
     model_name_or_path=None,
-    vision_tower=r'/home/rshodeinde/NExT-Chat/weights/clip-vit-large-patch14-336',
-    sam_path='/home/rshodeinde/NExT-Chat/weights/sam_vit_h_4b8939.pth',
+    vision_tower=r'/home/rshodeinde/weights/clip-vit-large-patch14',
+    sam_path= r'/home/rshodeinde/weights/sam_vit_h_4b8939.pth',
     pretrain_mm_mlp_adapter=None,
     pretrained_mm_projector=None,
 
@@ -22,7 +22,7 @@ model_args = dict(
 
     # data process config
     sep_image_conv_front=False,
-    image_token_len=576,
+    image_token_len=256,
     mm_use_im_start_end=True,
 
     target_processor=dict(

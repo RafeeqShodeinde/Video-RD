@@ -125,6 +125,8 @@ class NextChatLlamaModel(LlamaModel):
             new_input_embeds = []
             cur_image_idx = 0
             for cur_input_ids, cur_input_embeds in zip(input_ids, inputs_embeds):
+                print("curr_input_id ", cur_input_ids)
+                print("curr_input_embed: ", cur_input_embeds)
                 if (cur_input_ids == vision_tower.config.im_patch_token).sum() == 0:
                     # multimodal LLM, but the current sample is not multimodal
                     cur_input_embeds = cur_input_embeds + (0. * dummy_image_features).sum()
@@ -133,13 +135,25 @@ class NextChatLlamaModel(LlamaModel):
                 if vision_tower.config.use_im_start_end:
                     cur_image_features = image_features[cur_image_idx]
                     num_patches = cur_image_features.shape[0]
+                    print("mum_pathces:", num_patches)
+                    print()
                     if (cur_input_ids == vision_tower.config.im_start_token).sum() != (
                             cur_input_ids == vision_tower.config.im_end_token).sum():
                         raise ValueError("The number of image start tokens and image end tokens should be the same.")
                     image_start_tokens = torch.where(cur_input_ids == vision_tower.config.im_start_token)[0]
+                    print(image_start_tokens)
+
                     for image_start_token_pos in image_start_tokens:
+                        print(image_start_token_pos)
+                        print()
                         cur_image_features = image_features[cur_image_idx].to(device=cur_input_embeds.device)
                         num_patches = cur_image_features.shape[0]
+
+                        print(vision_tower.config)
+                        print("first input: ",cur_input_ids[image_start_token_pos + num_patches + 1])
+                        print("end_toke:", vision_tower.config.im_end_token)
+                        print(cur_input_ids[image_start_token_pos + num_patches + 1] != vision_tower.config.im_end_token)
+                        
                         if cur_input_ids[image_start_token_pos + num_patches + 1] != vision_tower.config.im_end_token:
                             raise ValueError("The image end token should follow the image start token.")
                         if orig_embeds_params is not None:

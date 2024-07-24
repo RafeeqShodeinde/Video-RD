@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Sequence, Mapping
 import torch
 from torch import nn
 import torch.nn.functional as F
+import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 from transformers import Seq2SeqTrainer, DataCollator, DataCollatorForSeq2Seq
@@ -337,24 +338,53 @@ class Seq2Seq2DataCollatorWithImage(Seq2SeqDataCollator):
         # which will make some parameters untrained in the batch.
         # use a mock annotation to prevent error
         self.mock = torch.load("mock.pth")
-
+        
     # noinspection PyMethodMayBeStatic
     def _image_process(self, features: List[Dict[str, Any]]) -> Dict[str, Any]:
+
+        # Define the transformation
+        transform = transforms.Compose([
+            transforms.ToPILImage(),          # Convert tensor to PIL Image
+            transforms.Resize((224, 224)),    # Resize image
+            transforms.ToTensor(),            # Convert back to tensor
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize with ImageNet mean and std
+        ])
+
+        # Transform the last indexed feature as 3x224x224
+        size = len(features)
+        last_index = size - 1
+        features[last_index]['image'] = transform(features[last_index]['image'])
+        
+        # print(features[0]['image'].shape)
+        # print(features[1]['image'].shape)
+        # print(features[2]['image'].shape)
+        # #print(features[3]['image'].shape)
         images = [feature['image'] for feature in features]
+        # print("########")
+        # print(images[0].shape)
+        # print(images[1].shape)
+        # print(images[2].shape)
+        #print(images[3].shape)
+
         images = torch.stack(images, dim=0)
         ret = dict(images=images)
         return ret
 
     def __call__(self, features: List[Dict[str, Any]], return_tensors=None) -> Dict[str, Any]:
+
         if not self.inference_mode and not ("masks_sam" in features[0]):
             features.append(self.mock)
         loc_inputs = [x['loc_inputs'] for x in features]
         loc_targets = [x['loc_targets'] for x in features]
         ret = super().__call__(features, return_tensors)
+    
         image_outputs = self._image_process(features)
+
         ret.update(image_outputs)
         ret["loc_inputs"] = torch.tensor([list(a) for b in loc_inputs for a in b])
+        # print("loc_inputs", ret["loc_inputs"].shape)
         ret["loc_targets"] = torch.tensor([list(a) for b in loc_targets for a in b])
+        # print("loc_targets", ret["loc_targets"].shape)
 
         if "images_sam" in features[0]:
             ret['images_sam'] = torch.stack([f["images_sam"] for f in features], dim=0)
